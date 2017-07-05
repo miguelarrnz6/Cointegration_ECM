@@ -1,0 +1,662 @@
+---
+title: "Cointegration"
+author: "Miguel A. Arranz"
+date: '`r Sys.Date()`'
+output:
+  html_notebook: default
+  html_document:
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Goals
+
+Cointegration testing, estimation of cointegrating vector and ECM
+
+# Spurious Regression
+
+
+  \begin{align*}
+    y_t  = & y_{t-1} + u_t ; \qquad u_t \sim iid(0, \sigma_u^2) \\
+    x_t  = & x_{t-1} + v_t ; \qquad v_t \sim iid(0, \sigma_v^2) \\
+    E(u_t, v_s) & = 0 \quad \forall t,s \\
+    E(u_t, u_{t-k}) & = E(v_t, v_{t-k}) = 0 \quad \forall k 
+  \end{align*}
+
+
+
+Regressing $y$ on $x$
+
+$$
+  y_t = \beta_0 + \beta_1 x_t + z_t
+$$
+What do you expect to obtain?
+
+  1. $\hat{\beta}_1 \longrightarrow 0$
+  
+  2. $R^2 \longrightarrow 0$
+  
+  3. $t_{\hat{\beta}} \longrightarrow t \: \text{distribution}$
+
+
+What is actually happening?
+
+$$ y_t = \hat{\beta}_0 + \hat{\beta}_1 x_t + \hat{z}_t $$
+
+  1. $\hat{\beta}_1 \longrightarrow$ certain distribution
+  
+  2. $R^2 \longrightarrow$ certain distribution
+  
+  3. $DW \longrightarrow 0$
+  
+  4. $T^{/1/2}  t_{\hat{\beta}} \longrightarrow$
+    certain distribution
+
+## Monte Carlo Experiment
+
+The DGP we are using is
+
+\begin{align*}
+\Delta y_t &= \alpha + \varepsilon_t, \qquad \epsilon_t \sim N(0, \sigma_\varepsilon^2) \\
+\Delta x_t &= \gamma + \nu_t, \qquad \nu_t \sim N(0, \sigma_\nu^2)
+\end{align*}
+
+To simplify the analysis, we assume that the two shocks $\varepsilon_t$ and $\nu_t$ are independent at all points in time, which implies that
+$$
+E(\varepsilon_s, \nu_t)=0 \quad \forall t,s
+$$
+and estimate the model
+$$ y_t = \beta_0 + \beta_1 x_t + u_t$$
+
+In this case we are taking the values:
+
+  a. $T=200$
+  
+  b. $\alpha = \gamma=0$
+  
+  c. $\sigma_\varepsilon = \sigma_\nu = 1$
+  
+  d. $y_0 = x_0 = 0$
+  
+  e. $M=2000$ (the number of replications)
+  
+  f. $B=50$ (the burn-in sample)
+  
+We obviously expect the mean value of $\hat{\beta_1}$ to be 0.
+
+```{r spurMC0}
+library(car)
+set.seed(1234567)
+T <- 200
+B <- 50
+N <- T + B
+x <- cumsum(rnorm(N))
+y <- cumsum(rnorm(N))
+y <- y[-(1:B)]
+x <- x[-(1:B)]
+mod.lm <- lm(y~x)
+mod.lm$coefficients
+sum.lm <- summary(mod.lm)
+sum.lm$coefficients
+CF <- sum.lm$coefficients
+beta1 <- CF[2,1]
+se <- CF[2,2]
+tratio <- CF[2,3]
+dwstat <- dwt(mod.lm)
+dwstat <- dwstat$dw
+rho <- cor(y,x)
+```
+
+and now let's run the Monte Carlo experiment
+
+```{r spurMC}
+set.seed(1234567)
+T <- 100
+B <- 50
+N <- T + B
+M <- 10000
+
+beta1 <- sebeta <- tratio <- dwstat <- rho <- array(dim=M)
+
+for(i in 1:M)
+  {
+  x <- cumsum(rnorm(N))
+  y <- cumsum(rnorm(N))
+  y <- y[-(1:B)]
+  x <- x[-(1:B)]
+  mod.lm <- lm(y~x)
+  sum.lm <- summary(mod.lm)
+  CF <- sum.lm$coefficients
+  beta1[i] <- CF[2,1]
+  sebeta[i] <- CF[2,2]
+  tratio[i] <- CF[2,3]
+  dwstat[i] <- dwt(mod.lm)$dw
+  rho[i] <- cor(x,y)
+  }
+```
+
+Let's analyse the results
+
+```{r spurMC2}
+mbeta1 <- mean(beta1)
+ssdbeta1 <- sd(beta1)
+sebeta1 <- ssdbeta1/sqrt(M)
+prejection <- sum(abs(tratio)>1.96)/M
+```
+
+
+The Monte Carlo estimate of the mean value of $\hat{\beta}_1$ is   $\tilde{E}(\hat{\beta}_1)=$`r round(mbeta1,3)`, with Monte Carlo standard error (i.e., the standard error of the Monte Carlo estimate of the mean of $\hat{\beta}_1$) is `r round(sebeta1,3)`. 
+
+Because we are estimating a mean using independent replications, a central limit theorem (CLT) applies to the Monte Carlo results, so that the sample mean is asymptotically normally distributed (i.e. as $M \rightarrow \infty$). Hence, we can reject the hypothesis that $E(\hat{\beta}_1 = 0)$ at $T=100$, despite the fact that the estimated mean value of $\hat{\beta}_1$ is relatively small.
+
+The sample standard deviation (SSD) of the the values of $\hat{\beta}_1$ is `r round(ssdbeta1,3)`
+
+The probability of rejecting $H_0$ at the conventional significance level is `r prejection`: we are making the wrong decision most of the time.
+
+The density of the spurious regression coefficient, standardized to zero mean, unit variance is:
+```{r plotbeta1}
+pbeta1 <- (beta1-mbeta1)/ssdbeta1
+plot(density(pbeta1), xlab="", ylab="", 
+     main=expression(paste("Density of standardized ", beta[1], sep=" ")))
+```
+
+
+and now let's see the $R^2$ of the regression
+```{r spurr2}
+r2vec <- rho*rho
+plot(density(r2vec), xlab="", ylab="", main=expression(paste("Empirical Distribution ", R^2 , sep=" ")))
+```
+
+and the t-ratio for $\hat{\beta}_1$
+```{r spurt}
+plot(density(tratio), xlab="", ylab="", main=expression(paste("Empirical Distribution ", t[beta] , sep=" ")))
+```
+
+
+# Cointegration
+
+
+  Rule 1
+  \begin{align*}
+      X_t \rightarrow I(0)  & \Rightarrow a + b X_t \rightarrow I(0) \\
+      X_t \rightarrow I(1)  & \Rightarrow a + b X_t \rightarrow I(1)
+\end{align*}  
+    
+    Rule 2
+      \begin{align*}
+    X_t , Y_t \rightarrow I(0)  & \Rightarrow a X_t + b Y_t \rightarrow I(0)
+  \end{align*}
+  
+  Rule 3
+    \begin{align*}
+      X_t \rightarrow I(0), Y_t \rightarrow I(1)  & \Rightarrow a X_t + b Y_t \rightarrow I(1)
+   \end{align*}
+
+$I(1)$ **is dominant**
+
+  
+
+What is **cointegration**?
+
+Two time series are integrated of order 1 (have one unit root)
+$$ Y \sim I(1) \qquad X \sim I(1) $$
+but a linear combination $Y - \beta X$ is stationary (no unit root)
+$$ Z = Y - \beta X \sim I(0)$$
+the **cointegrating vector** would be
+$$ (1, -\beta)$$
+
+## Definition
+
+If $X_t, Y_t$ are $I(1)$ but there is a linear combination, say
+
+$$
+Z_t = c + a X_t + b Y_t
+$$
+
+such that $Z_t \rightarrow I(0)$, then $X_t, Y_t$ are **cointegrated**
+
+## Normalization
+
+Notice that the cointagrating vector is not really unique. If the relationship
+$$ Z = aY_t + b X_t$$
+is stationary, then
+$$ k Z_t = k a Y_t - k b X_t$$
+is also stationary $\forall k \neq 0$.
+
+That is why we usualy take the normalization
+$$ Z_t = Y_t - \beta X_t$$
+# Common Trends
+
+Let $(Y_t, X_t) \sim I(1)$, and $\varepsilon_t =(\varepsilon_{1,t}, \varepsilon_{2,t}, \varepsilon_{3,t}) \sim I(0)$, and assume that $(Y_t, X_t)$ are cointegrated, being $\beta = (1, -beta_2)$ the cointegrating vector. We can express the system as:
+
+
+\begin{align*}
+y_t & = \beta_2 \sum_{s=1}^t \epsilon_{1,s} + \epsilon_{3,t} \\
+x_t & = \sum_{s=1}^t \epsilon_{1,s} + \epsilon_{2,t}
+\end{align*}
+
+
+The **common stochastic trend** is $\sum_{s=1}^t \epsilon_{1,s}$.
+
+Notice that the cointegrating relationship eliminates the common trend:
+
+\begin{align*}
+y_t - \beta_2 x_t & = \beta_2 \sum_{s=1}^t \epsilon_{1,s} + \epsilon_{3,t} - 
+  \beta_2 (\sum_{s=1}^t \epsilon_{1,s} + \epsilon_{2,t}) \\
+    & = \epsilon_{3,t} - \beta_2 \epsilon_{2,t} \qquad \sim I(0)
+\end{align*}    
+
+
+
+# Examples in Economics and Finance
+
+In economics, cointegration
+is most often associated with economic theories that imply equilibrium
+relationships between time series variables. 
+
+  The permanent income model implies cointegration between consumption and income, with consumption being the common trend. Money demand models imply cointegration between money, income, prices and interest rates. 
+
+  Growth theory models imply cointegration between income, consumption and investment, with productivity being the common trend. Purchasing power parity implies cointegration between the nominal exchange rate and foreign and domestic prices. 
+  
+  Covered interest rate parity implies cointegration between forward and spot exchange rates. The Fisher equation implies cointegration between nominal interest rates and inflation. 
+  
+  The expectations hypothesis of the term structure implies cointegration between nominal interest rates at different maturities.
+
+The equilibrium relationships implied by these economic
+theories are referred to as **long-run equilibrium** relationships, because
+the economic forces that act in response to deviations from equilibrium
+may take a long time to restore equilibrium. As a result, cointegration
+is modeled using long spans of low frequency time series data measured
+monthly, quarterly or annually.
+
+
+In finance, cointegration may be a high frequency relationship or a low
+frequency relationship. 
+
+Cointegration at a high frequency is motivated by
+**arbitrage arguments**. 
+
+  The **Law of One Price** implies that identical assets must sell for the same price to avoid arbitrage opportunities. This implies cointegration between the prices of the same asset trading on different markets, for example.
+  
+  Similar arbitrage arguments imply cointegration between spot and futures prices, and spot and forward prices, and bid and ask prices. Here the terminology long-run equilibrium relationship is somewhat
+misleading because the economic forces acting to eliminate arbitrage
+opportunities work very quickly. 
+
+Cointegration is appropriately modeled
+using short spans of high frequency data in seconds, minutes, hours or
+days. 
+
+Cointegration at a low frequency is motivated by economic equilibrium
+theories linking assets prices or expected returns to fundamentals. 
+
+  For example, the present value model of stock prices states that a stock's price is an expected discounted present value of its expected future dividends or earnings. This links the behavior of stock prices at low frequencies to the behavior of dividends or earnings. In this case, cointegration is modeled using low frequency data and is used to explain the long-run behavior of stock prices or expected returns.
+  
+  
+# Long-run Equilibrium
+
+Cointegration is associated to an important economic concept: **long-run equilibrium**.
+
+We can interpret
+$$ Y_{t-1} - \beta X_{t-1}$$
+as a lagged disequilibrium.
+
+Hence, we might express the model as:
+
+$$ \Delta Y_t = \delta_0 + \sum_{i=1}^p \delta_i \Delta Y_{t-i} + \sum_{k=0}^q \theta_k \Delta X_{t-k}
++ b (Y_{t-1} - \beta X_{t-1}) + \epsilon_t$$
+
+This is the **error correction model**. If the the variables are cointegrated then $b <0$ in the ECM equation.
+
+# Simulation of Cointegrated Processes
+
+We are using the triangular representation
+
+
+\begin{align*}
+Y_t & = \beta X_t + u_t & \qquad u_t & \sim I(0) \\
+X_t & = X_{t-1} + \nu_t & \qquad \nu_t & \sim I(0)
+\end{align*}
+
+
+In our example the values will be
+
+  $T=200$
+  
+  $\beta = 1$, so that the cointegrating vector is $(1, -1)$.
+  
+  $u_t = 0.75 u_{t-1} + a_t$, following a stationary AR(1) process.
+  
+  $a_t, u_t \sim N(0, \sigma^2)$, with $\sigma^2_a = \sigma^2_u = 0.75$
+
+
+```{r cointpair}
+library(zoo)
+set.seed(1234567)
+T <- 200
+a <- rnorm(T, mean=0, sd=0.75)
+nu <- rnorm(T, mean=0, sd=0.75)
+x <- cumsum(nu)
+u <- arima.sim(model=list(ar1=0.5), T, innov=a)
+y <- x + u
+plot.zoo(y, main=expression(paste("Cointegrated System, ", beta, "=(1,-1)")), xlab="", ylab="")
+lines(x, col=2)
+legend(x="bottomright", c("y", "x"), lty=c(1,1), col=c(1,2))
+plot.zoo(u, main=expression(paste("Cointegrating Relationship ", Y[t] - X[t], sep=" ")), xlab="", ylab="")
+```
+
+# Vector Error Correction Model
+
+\begin{align*}
+    \Delta X_t & = c_1 + \rho_1 Z_{t-1}  + \gamma_1 \Delta X_{t-1} +
+                 \ldots + \alpha_1 \Delta Y_{t-1} + \ldots +
+                 \varepsilon_{x,t} \\
+     \Delta Y_t & = c_2 + \rho_2 Z_{t-1}  + \lambda_1 \Delta X_{t-1} +
+                 \ldots + \delta_1 \Delta Y_{t-1} + \ldots +
+                 \varepsilon_{y,t} 
+\end{align*}
+  
+where
+
+$(\varepsilon_{x,t}, \varepsilon_{y,t})^\prime$ is a bivariate
+  white noise,
+  
+$Z_t = X_t - AY_t \sim I(0)$
+
+at least one $\rho_i \neq 0$
+
+VECM:
+
+If $X_t, Y_t$ are not cointegrated, $\Rightarrow Z_t \sim I(1)$
+
+In the ECM, $I(1)$ cannot explain $I(0)$, i.e $\Delta X_t, \Delta Y_t$: $\rho_1 = \rho_2=0$ 
+    
+## Granger's Representation Theorem    
+
+If $X_t, Y_t$ are cointegrated, then  there is an ECM representation.
+
+If there is an ECM representation, the variables are cointegrated. 
+
+
+# Cointegration Testing
+
+## Engle-Granger
+
+It is a **2-step** procedure:
+
+1. Estimate
+$$ Y_t = \alpha + \beta X_t + Z_t $$
+and obtain the residuals of this regression
+
+2. Apply a unit-root test to the residuals $\hat{Z}_t$
+
+If we only have two variables in the cointegrating relationship, the
+test will follow the corresponding DF distribution. If we have more
+than 2 variables, we have to check the tables, because there are
+several nuisance parameters (including the number of variables) that
+affect its distribution.
+
+## ECM
+
+Estimate the model
+$$ \Delta Y_t = \delta_0 +\sum_{i=1}^p \delta_i \Delta Y_{t-i} + \sum_{k=0}^q \theta_k \Delta X_{t-k}
++ b \hat{Z}_{t-1} + \epsilon_t$$
+
+If the two series are cointegrated then $b<0$. Notice that the t-ratio of $b$ is not asymptotically Normal. we have to take the DF critical values.
+
+The test will be
+
+$$
+  H_0: b=0 \qquad H_1: b<0
+$$
+  
+The same caveat of EG applies.
+
+# Cointegrating Vector Estimation
+
+## OLS (Engle-Granger)
+
+Least squares may be used to consistently estimate a normalized cointegrating vector. However, the asymptotic behavior of the least squares estimator is non-standard. 
+We estimate by OLS the regression
+
+$$
+  y_t = \beta_0 + \beta_1 x_t + z_t
+$$
+Lagged residuals are used for cointegration testing and also for
+estimating models with ECM.
+
+### Properties of OLS Estimators
+
+$T(\hat{\beta}_1 - \beta_1)$ converges in distribution to a non-normal random variable not necessarily centered at zero.
+
+The least squares estimate $\hat{\beta}_1$ is consistent for $\beta_1$ and converges to $\beta_1$ at rate $T$ instead of the usual rate $T^{0.5}$. That is, $\hat{\beta}_1$ is **super-consistent**.
+  
+The usual OLS formula for computing the asymptotic variance of $\hat{\beta}_1$ is incorrect: THE USUAL STANDARD ERRORS ARE NOT CORRECT.
+
+Even though the asymptotic bias goes to zero as $T$  gets large $\beta_1$  may be substantially biased in small samples. The least squares estimator is also not efficient.  
+
+## FM-OLS
+
+Fully Modified Estimators (Philips 1987) is a method designed to allow
+for robust statistical inference without any need to examine whether
+the data contains unit roots and cointegration.
+
+The FM estimator treats all variables as potential unit rot processes and accordingly corrects the OLS estimator for any harmful correlation effects and endogeneity arising from cointegrating relationships.
+
+All these corrections are performed using nonparametric methods.
+
+Conventional critical values can be applied to obtain valid (if conservative) asymptotic tests of hypothesis on the coefficients.
+
+## DLS
+
+ The original cointegrating regression is
+$$
+  y_t = \beta_0 + \beta_1 x_t + z_t
+$$
+
+We **augment** the regression including **leads** and
+**lags** of $\Delta x_t$
+
+\begin{align*}
+  y_t & = \beta_0 + \beta_1 x_t  + \sum_{i=-p}^p \gamma_i \Delta
+        x_{t-i} + z_t  \\
+y_t & = \beta_0 + \beta_1 x_t  + \gamma_0 \Delta x_t + 
+\gamma_1 \Delta x_{t-1} + \lambda_1 \Delta x_{t+1} + \ldots \\
+& + \gamma_p \Delta x_{t-p} + \lambda_p \Delta x_{t+p} + z_t 
+\end{align*}
+
+Estimate the augmented regression by OLS.
+
+The resulting estimator is known as **dynamic OLS estimator**.
+
+### Properties of DOLS
+
+It will be consistent, asymptotically normally distributed and efficient (equivalent to MLE) under certain assumptions (see Stock and Watson, 1993).
+  
+We may use Newey-West HAC standard errors for inference  
+
+
+## NLS
+
+In this case we estimate the modified ECM regression
+
+$$
+  \Delta y_t = \hat{\gamma}_0 \Delta x_t + \hat{\theta} (y_{t-1} -
+  \hat{\beta}_0 - \hat{\beta}_1  x_{t-1}) + \hat{\varepsilon}_t
+$$
+
+or a second version:
+
+$$
+  \Delta y_t = \hat{\alpha} + \hat{\gamma}_0 \Delta x_t + \hat{\theta} (y_{t-1} -
+  x_{t-1}) + \hat{\pi} x_{t-1} + \hat{\varepsilon}_t
+$$
+
+The parameter of interest, $\hat{\beta}_1$ is given by
+$$
+  \hat{\beta}_1 = \dfrac{\hat{\pi}}{\hat{\theta}}
+$$
+
+
+# Data Analysis
+
+## Packages 
+
+```{r packages, message=FALSE, warning=FALSE}
+library(quantmod)
+library(dynlm)
+library(tseries)
+library(forecast)
+library(lmtest)
+library(sandwich)
+library(ggplot2)
+library(plotly)
+library(tsoutliers)
+library(urca)
+library(dynlm)
+library(gets)
+library(dyn)
+library(cointReg)
+library(FinTS)
+```
+
+## Download Data
+
+```{r datadownload, message=FALSE, warning=FALSE}
+symbols.vec <- c("INDPRO", "GS10")
+
+getSymbols(symbols.vec, src="FRED")
+
+INDPRO <- INDPRO['2000-01-01/2015-12-31']
+GS10 <- GS10['2000-01-01/2015-12-31']
+y <- as.zoo(log(INDPRO))
+x <- as.zoo(GS10)
+
+```
+
+## Engle-Granger
+
+### First-step
+
+```{r eg1}
+eg1 <- dynlm(y ~ x)
+print(summary(eg1))
+tsdisplay(eg1$residuals)
+z <- eg1$residuals
+```
+A look the ACF of the residuals makes you think that those residuals are not stationary. That means there is a unit root. 
+
+### Second-step
+
+Apply ADF to $z$
+
+We start with constant and trend
+
+```{r zdft}
+z.df3 <- ur.df(z, type="trend", selectlags = "BIC")
+print(summary(z.df3))
+plot(z.df3)
+```
+
+We do not reject $H_0$ so there seems to be a unit root.
+
+We remove the deterministic trend given $\phi_3$.
+```{r zdfc}
+z.df2 <- ur.df(z, type="drift", selectlags = "BIC")
+print(summary(z.df2))
+plot(z.df2)
+```
+
+We reach the same conclusion: there is a unit root. Although it is not really recommended to drop the constant (since the critical values are very sensitive to nuisance parameters), we give it a try:
+```{r zdf}
+z.df1 <- ur.df(z, type="none", selectlags = "BIC")
+print(summary(z.df1))
+plot(z.df1)
+```
+
+So there is a unit root in the residuals and hence **there is no cointegration**.
+
+## ECM
+
+We had found the dynamic linear model
+
+```{r mbig3}
+mbig <- dynlm( d(y) ~ -1 + L(d(y),2) + L(d(y),3) + L(d(y),4)  + L(d(x),1) + L(d(x),3))
+print(summary(mbig))
+coeftest(mbig, vcov=vcovHC)
+tsdisplay(mbig$resid)
+
+```
+
+Let's include the **lagged** residuals of the first-step and see whether they are significant with a negative parameter (since the variables are not cointegrated that will not happen)
+```{r ecm1}
+ecm1 <- dynlm( d(y) ~ -1 + L(d(y),2) + L(d(y),3) + L(d(y),4)  + L(d(x),1) + L(d(x),3) + L(z,1) )
+print(summary(ecm1))
+coeftest(ecm1, vcov=vcovHC)
+tsdisplay(ecm1$resid)
+
+```
+
+The critical value provided by DF is -1.95. Since in this case the t-ratio for the parameter is smaller than -1.95, when performing the test
+$$ H_0: b=0 \qquad H_1: b<0$$
+we reject $H_0$ and the variables are thus **cointegrated**.
+
+Let's check the adequacy of the model:
+
+```{r ecm1ad}
+print(bptest(ecm1))
+print(bgtest(ecm1, order=4, type="Chisq"))
+print(JarqueBera.test(ecm1$residuals))
+print(ArchTest(ecm1$residuals))
+```
+
+## Estimation of the cointegrating vector
+
+### OLS
+
+```{r olscoint}
+olscoint <- dynlm(y ~x)
+print(summary(olscoint))
+```
+
+
+### FM-OLS
+
+Let's use **cointReg**
+
+```{r cointFM}
+  vy <- coredata(y)
+  vx <- coredata(x)
+  T <- length(vx)
+  deter <- rep(1,T)
+  fm1 <- cointRegFM(vx, vy, deter)
+  print(fm1)
+  plot(fm1)
+  
+```
+
+### Dynamic OLS
+
+Let's use **cointReg**
+
+```{r dols1}
+dols1 <- cointRegD(vx, vy, deter, n.lead = 2, n.lag = 2, 
+                   kernel = "ba", bandwidth = "and")
+print(dols1)
+plot(dols1)
+
+```
+
+
+```{r dols2}
+dols2 <- cointRegD(vx, vy, deter, kmax = "k4", info.crit = "BIC", 
+                   kernel = "ba", bandwidth = "and")
+print(dols2)
+plot(dols2)
+```
+
+

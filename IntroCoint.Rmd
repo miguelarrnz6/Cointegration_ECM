@@ -1,0 +1,514 @@
+---
+title: "Introduction to Cointegration"
+author: "Miguel A. Arranz"
+date: '`r Sys.Date()`'
+output:
+  tint::tintPdf:
+    citation_package: natbib
+    latex_engine: pdflatex
+  tint::tintHtml:
+    self_contained: yes
+subtitle: Cointegration and ECM
+link-citations: yes
+---
+
+```{r setup, include=FALSE}
+library(tint)
+library(tufte)
+library(bookdown)
+# invalidate cache when the package version changes
+knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tint'))
+options(htmltools.dir.version = FALSE)
+```
+
+#Introduction
+
+Time-series econometrics is concerned with the estimation of
+relationships among groups of variables, each of which is observed at a number
+of consecutive points in time. The relationships among these variables
+may be complicated; in particular, the value of each variable may
+depend on the values taken by many others in several previous time
+periods. In consequence, the effect that a change in one variable has on
+another depends upon the time horizon that we consider. It is easy to
+imagine examples in which a change in one quantity has little or no
+effect on another at first and a substantial effect later. Alternatively, a
+variable may have a substantial effect on another for a time, but that
+effect may eventually die out.
+
+It is useful, therefore, to distinguish what are often called 'short-run'
+relationships (those holding over a relatively short period) from 'long-
+run' relationships. The former relate to links that do not persist. For
+example, a sudden storm may temporarily reduce the supply of fresh
+fish and increase its price, but later fair weather will lead to the
+re-establishing of the earlier price if demand is unaltered. The long-run
+relationships determine the generally prevailing price-quantity
+combinations transacted in the market, and so are closely linked to the concepts
+of equilibrium relationships in economic theory and of persistent co-movements
+of economic time series in econometrics. Our first task is to
+clarify these concepts.
+
+# Equilibrium Relationships and the Long Run
+
+An equilibrium state is defined as one in which there is no inherent
+tendency to change. A disequilibrium is any situation that is not an
+equilibrium and hence characterizes a state that contains the seeds of its
+own destruction. An equilibrium state may or may not have the
+property of either local or global stability; thus, it may or may not be
+true that the system tends to return to the equilibrium state when it is
+perturbed. However, we generally consider only stable equilibria, since
+unstable equilibria will not persist given that there are stochastic shocks
+to the economy. That is, equilibria are states to which the system is
+attracted, other things being equal. It may also be possible in some
+circumstances to view the forces tending to push the system back into
+equilibrium as depending upon the magnitude of the deviation from
+equilibrium at a given point in time.
+
+
+Our definition ig intended to be general and therefore to incorporate
+market-clearing equilibria, as well as others which may arise through the
+behaviour of a variety of different types of systems. For example, we
+would say that an equilibrium relationship exists between aggregate
+consumption and income if consumption tends toward a fraction $\gamma$ of
+income in the absence of shocks which may temporarily perturb the
+relationship.
+
+
+Even if shocks to a system are constantly occurring so that the
+economic system is never in equilibrium, the concept of long-run
+equilibrium may nonetheless be useful. The present is the long-run
+outcome of the distant past and, as will be made precise below, a
+long-run relationship will often hold 'on average' over time. Moreover,
+a stable equilibrium has the property that a given deviation from the
+equilibrium becomes more and more unlikely as the magnitude of the
+deviation is greater, so that one may be reasonably confident that the
+discrepancy between the actual relationship connecting variables and this
+long-run relationship is within certain bounds.
+
+Methods for investigating such long-run relationships are our concern
+here. An examination of these methods will lead us to discuss aspects of
+time-series analysis, of dynamic modelling in general, and of the rapidly
+growing literature treating co-integration, error correction, and inference
+from non-stationary data. The first step is to clarify the statistical notion
+of stationarity and its links to the concept of equilibrium.
+
+
+# Stationarity and Equilibrium Relationships
+
+In economic theory, the concept of equilibrium is well established and
+well defined. The statistical concept of equilibrium centres on that of a
+stationary process, which will be defined formally below. A substantial
+body of methods is developing around the statistical features of
+equilibrium relationships among time-series processes, and the concepts of
+stationarity and particular forms of non-stationarity are crucial to these
+methods.
+
+Given the characterization above, the short-run discrepancy $\varepsilon_t$ in an
+equilibrium relationship must have no tendency to grow systematically
+over time. However, since this error represents shocks that are
+constantly occurring and affecting economic variables, in a real economic
+system there is no systematic tendency for this error to diminish over
+time either. It would fall away to zero only if shocks were to cease.
+
+
+
+# Equilibrium and the Specification of Dynamic Models
+
+A substantive long-run equihbrium relationship is something from
+which the variables involved can deviate, but not by an ever-growing
+amount. That is, the discrepancy or error in the relationship cannot be
+integrated of any order greater than zero. Series integrated of strictly
+positive orders which are linked by such an equilibrium relationship
+must, therefore, be co-integrated with each other. In the example just
+given, the fact that the integrated series $x_1$ and $x_2$ move together in the
+long run is reflected in the fact that they are co-integrated; a linear
+relation yields a stationary deviation.
+
+
+Since a relationship between co-integrated variables can be shown to
+be representable using an error-correction mechanism (see Chapter 5),
+and since such representations have been found to be valuable in
+empirical modelHng, there is a formal counterpart to the informal
+argument above suggesting the usefulness of equilibrium information in
+specifying dynamic regression models.
+
+
+# Estimation of Long-Run Relationships and Testing for Orders of Integration and Co-integration
+
+The existence of long-run relationships between variables, the potential
+orders of integration of particular time series, and the implications of
+these for the specification of dynamic econometric models can be
+understood as mathematical properties without implying that we know
+whether or not such relationships exist, let alone what their forms for a
+particular empirical problem would be.
+When an estimated regression equation implies an equilibrium
+relationship between two processes, it is a straightforward operation to
+extract the estimated long-run equilibrium relation regardless of the
+form in which the equation is estimated. The calculation can be made by
+expressing the equation in an equilibrium form and taking its
+expectation. This is analogous to assuming a state in which the values of the
+variables do not change, so that the dating of variables becomes
+irrelevant and the equation is treated as deterministic. Computing the
+derivative between the two series is then straightforward.
+Approximations to the variances of estimated long-run multipliers can also be
+computed. Chapter 2 explores various transformations of the linear
+model that are convenient for these and related calculations.
+
+Testing for the existence of such an equihbrium relationship is not
+nearly so simple. First, it is difficult empirically to estabhsh the orders of
+integration of individual time series. Second, the order of integration of
+a linear relationship among variables is even harder to discover than the
+order of integration of a single series: drawing inferences is complicated
+by the fact that the parameters of the relationship are in general
+unknown.
+
+Testing whether an individual series is $I(1)$ as opposed to $I(0)$ is the
+problem that has been widely discussed as that of testing for a 'unit
+root' in a time series. Strategies for performing such testing have had to
+contend with the problem that $I(0)$ alternatives in which the series is
+'close' to being $I(1)$ (so that the power of the test is low) are very
+plausible in many economic circumstances. Further, the form of the data
+generation process (e.g. the orders of dynamics; the question of which
+exogenous variables enter; etc.) is not known, and critical values of test
+statistics are typically sensitive to the structure of the process.
+
+A related method can be applied to the problem of testing for an
+equilibrium relation between integrated variables. A prior step must be
+added to the method above, in which a linear relationship between or
+among the variables in question is estimated. Testing for co-integration
+then entails testing the order of integration of the error in this
+relationship. For example, a stationary error in a model relating
+integrated series entails an equilibrium relationship. Conversely, if there
+were no equilibrium relationship, there would be nothing to tie these
+series to any estimated linear relation, and this would imply
+non-stationarity of the residuals.
+
+It might appear at first sight, for example, that testing for
+co-integration between $I(1)$ series $\{x_1\}$ and $\{x_2\}$ would be precisely the same as
+a test of the hypothesis that $\{\varepsilon \}= \{x_1 - \beta x_2\}$ is $I(1)$ against the
+alternative that $\{ \varepsilon \}$ is $I(0)$. However, this is true only under very strong
+assumptions. Necessary conditions include that there is only one cointegrating relation
+and the values of its parameters are known. In the
+bivariate case, when $\beta$ is estimated, the series that one tests for
+stationarity is $\{ \hat{\varepsilon}\}= \{x_1 - \hat{\beta} x_2 \}$.
+Since linear regression minimizes the
+variance of $\{ \hat{\varepsilon}\}$, the estimated series of deviations from equihbrium has a
+smaller variance than the true deviations $\{x_1 - \beta x_2\}$, assuming that $\beta$
+exists. That is, the method by which $\beta$ is usually estimated amounts to
+choosing $\hat{\beta}$ in such a way that the two variables are given the best
+chance to appear to move together. Regression makes co-integration
+appear to be present more often than it should, so that the critical
+values of test statistics must be adjusted to reflect the fact that $\beta$ is
+estimated, Co-integration tests are therefore similar, but not identical,
+to standard stationarity tests.
+
+
+The two issues of being able to test for the existence of an equilibrium
+relationship among variables and to accurately estimate such a
+relationship are complementary. Indeed, as demonstrated in discussing spurious
+regressions in Chapter 3, static regressions among integrated series are
+meaningful if and only if they involve co-integrated variables. Thus, it is
+of interest to discover, first, how well the most frequently used tests of
+co-integration perform, and second, how accurately the corresponding
+equilibrium relationship is estimated.
+
+The objective of this module is to develop tests applicable to single
+equations which may be used to detect a long-term relationship of the
+form discussed and exploited in earlier chapters. We also attempt to
+formulate some recommendations for efficient estimation of
+co-integrating parameters and testing for co-integration in finite samples. It will
+become clear from the discussion that the asymptotic properties of static
+regression estimators are often rather different from their behaviour in
+empirically relevant sample sizes. Further, lack of weak exogeneity due
+to co-integrating vectors entering several equations also alters finite
+sample behaviour. It therefore becomes important, in the face of data
+limitations, to consider alternative methods which do not rely exclusively
+on single-equation static regressions.
+
+# The Role of Normalization
+
+The cointegrating relationship is
+
+$$
+\beta_1 y_1 - \beta_2 y_2
+$$
+
+Yet, when we estimate te relationship, we take the regression
+
+
+The OLS estimate of the cointegrating vector was obtained by normalizing
+the first element of the cointegrating vector a to be unity. The proposal was then
+to regress the first element of y, on the others. For example, with n = 2, we would
+regress $y_1$ on $y_2$
+
+\begin{equation}
+y_1 = \alpha  + \beta y_2 + \varepsilon
+\end{equation}
+
+Obviously, we might equally well have normalized $\beta_2 = 1$ and used the same
+argument to suggest a regression of $y_2$ on $y_1$:
+
+\begin{equation}
+y_2 = \theta  + \varphi y_2 + v
+\end{equation}
+
+The OLS estimate $\hat{\varphi}$ is not simply the inverse of $\hat{\beta}$, meaning that these two regressions will give different estimates of the cointegrating vector.
+
+Only in the limiting case where the $R^2$ is 1 would the two estimates coincide.
+
+Thus, choosing which variable to call $y_1$ and which to call $y_2$ might end up
+making a material difference for the estimate of a as well as for the evidence one
+finds for cointegration among the series. One approach that avoids this normalization
+problem is the full-information maximum likelihood estimate proposed by
+Johansen A988, 1991). This will be discussed later.
+
+# Spurious Regression
+
+
+The standard proof of the consistency of ordinary least squares
+regression uses an assumption such as that $plim(1/T)(\mathbf{X}^\prime \mathbf{X}) = \mathbf{Q}$,
+where $\mathbf{X}$ is
+the matrix containing the data on the explanatory variables and $\mathbf{Q}$ is a
+fixed matrix. That is, with increasing sample information, the sample
+moments of the data settle down to their population values. In order to
+have fixed population moments to which these sample moments
+converge, the data must be stationary-otherwise, as for example in the
+case of integrated series, the data might be tending to increase over
+time, in which case there are no fixed values in the matrix of
+expectations of sums of squares and cross-products of these data.
+
+Some examples of what can emerge when standard regression
+techniques are used with non-stationary data were re-emphasized by
+Granger and Newbold, who considered the following data generation
+process:
+
+
+\begin{align}
+y_t & = y_{t-1} + u_t, \qquad u_t \sim N(0, \sigma^2_u) \\
+x_t & = x_{t-1} + v_t, \qquad v_t \sim N(0, \sigma^2_v)
+\end{align}
+
+\begin{align*}
+E(u_t, v_s) = 0 \: \forall s,t; \qquad E(u_t, u_{t-k}) = E(v_t, v_{t-k}) = 0 \: \forall k \neq 0
+\end{align*}
+
+
+That is, $x_t$ and $y_t$ are uncorrelated random walks. Since $x_t$ neither
+affects nor is affected by $y_t$, one would hope that the coefficient $\beta_1$ in
+the regression model
+
+\begin{equation}
+y_t = \beta_0 + \beta_1 x_t + \varepsilon_t
+\end{equation}
+
+would converge in probability to zero, reflecting the lack of a relation
+between the series, and that the coefficient of determination ($R^2$) from
+this regression would also tend to zero. However, this is not the case.
+Regression methods detect correlations, and in non-stationary series (as
+Yule 1926 showed) spurious correlations may persist in large samples
+despite the absence of any connection between the underlying series. If
+two time series are each growing, for example, they may be correlated
+even though they are increasing for entirely different reasons and by
+increments that are uncorrected. Hence a correlation between integrated series
+cannot be interpreted in the way that it could be if it arose among stationary series.
+
+In (3), both the null hypothesis $\beta_1=0$ (implying $y_t = \beta_0 + \varepsilon_t$), and
+the alternative $\beta_1 \neq 0$ lead to false models, since the true DGP is not
+nested within (3). From this perspective it is not surprising that the null
+hypothesis, implying that $\{y_t\}$ is a white-noise process, is rejected; the
+autocorrelation in the random walk $\{y_t\}$ tends to project onto $\{x_t\}$, also
+a random walk and therefore also strongly autocorrelated. Tests based
+on badly specified models can often be misleading. Nonetheless, the
+spurious regression problem that appears among integrated processes is
+distinct from the inferential problems that may appear among stationary
+processes. If $\{y_t\}$ and $\{y_t\}$ were made stationary by introducing a
+coefficient between zero and one on each of the lagged terms in (1) and
+(2), the OLS-estimated regression coefficient $\hat{\beta}_1$ and the non-centrality
+of its $t$-statistic would both converge to zero, even though (3) does not
+nest the true process (although the $t$-test would over-reject). That is, in
+the stationary case, regression on a set of variables independent of the
+regressand produces coefficients that converge to zero; in the non-stationary case, this need not be so.
+
+To characterize precisely some of the analytical results for integrated
+processes, we refer to Phillips (1986). A simple case uses (1) and (2)
+above as the data generation process, with the assumptions concerning
+the error processes $u_t$ and $v_t$ capable of being weakened substantially.
+Then, estimation of the model (3) by ordinary least squares can be
+shown to lead to results that cannot be interpreted within the
+conventional testing procedure. To begin with, conventionally calculated '$t$-statistics' on
+$\hat{\beta}_0$ and $\hat{\beta}_1$ do not have $t$-distributions, do not have any limiting
+distributions, and in fact diverge in distribution as the sample size $T$
+increases; hence, for any fixed critical value, rejection rates will tend to
+increase with sample size. The null hypothesis that is being rejected here
+is $H_0: \beta_1= 0$; hence a rejection rate increasing with sample size implies
+that a null of no relationship between the series will tend to be rejected
+more and more frequently in larger samples. The $t$-statistics are of order
+$T^{0.5}$. Thus, the invalid inference that there is in fact a relationship is
+traceable directly to the non-stationarity in the data-generation process
+(1) and (2). When (1) and (2) are replaced with stable autoregressive
+processes, the non-centrality of the $t$-statistic to test $H_0: \beta_1= 0$
+converges to zero, reflecting the lack of relationship between the series.
+
+Further analytical results concerning the distribution of the $F$-statistic
+for the hypothesis that $\beta_0 = \beta_1 = 0$, and those of standard
+autocorrelation test statistics, are also given in Phillips (1986). The $f$-statistic also
+diverges, leading to rejections growing with the sample size $T$, despite
+the lack of relation between $\{y_t\}$ and $\{x_t\}$; residual autocorrelation
+tests, however, provide an indication to the investigator that the model
+is mis-specified, by converging in probability to the values implied by a
+serial correlation coefficient of unity. That is, although the $t$- and
+$F$-statistics for the null hypothesis of interest are grossly misleading,
+some information which would suggest that the regression (3) is mis-
+specified is provided by a test for residual autocorrelation. This
+underlines again the. importance of thoroughly testing any regression model
+for mis-specification, and basing inference only upon those in which no
+evidence of serious mis-specification is found; see e.g. Spanos (1986).
+
+Consider now the following bivariate DGP, which extends (1) and (2)
+by allowing the inclusion of intercepts corresponding to potential drifts
+in the unit-root processes:
+
+
+\begin{align}
+\Delta y_t &= \alpha + \varepsilon_t, \qquad \epsilon_t \sim N(0, \sigma_\varepsilon^2) \\
+\Delta z_t &= \gamma + \nu_t, \qquad \nu_t \sim N(0, \sigma_\nu^2)
+\end{align}
+
+To simplify the analysis, we assume that the two shocks $\varepsilon_t$ and $\nu_t$ are
+independent at all points in time, which implies that
+
+\begin{equation}
+E(\varepsilon_t, \nu_s) = 0 \qquad \forall t,s.
+\end{equation}
+
+Assume also that the initial values $y_0$ and $z_0$ are zero. We will mainly
+consider the case where $\alpha = \gamma = 0$, so that both variables are simple
+random walks and $y_t$ and $z_t$ are the sums of all of their respective past
+shocks. When $\alpha$ and $\gamma$ are not zero, $y_t$ and $z_t$ depend on linear trends
+which reflect the accumulation of the successive intercepts. This
+completes the formulation of the statistical generating mechanism in (4) and
+(5), other than stating a specific form for the error distributions. (These results were obtained in the Module on Unit Roots).
+
+Turn now to the specification of an economic hypothesis. An
+economist may wish to describe the relationship between $\{y_t\}$ and $\{z_t\}$ with the
+model
+
+\begin{equation}
+y_t = \beta_0 + \beta_1 z_t + u_t,
+\end{equation}
+where $\beta_1$ is interpreted as the derivative of $y_t$ with respect to $z_t$
+Conventionally, equations such as (7) are estimated by ordinary least
+squares, treating $\{u_t\}$ as an IID process independent of $z_t$. Since $y_t$ and
+$z_t$ are causally unrelated here by construction, the derivative $\beta_1$ is zero
+in the sense that no relation exists; it is not true to say that setting $\beta_1$ to
+zero in (7) gives the true DGP. We want to examine the properties of
+the conventional estimation and hypothesis testing procedure applied to
+(7) when the unknown DGP is in fact (4)-(6).
+
+Standard regression theory for models involving stationary regressors
+would suggest that $plim(\hat{\beta}_1 = \beta_1) = 0$, and that the probability of the
+absolute value of the $t$-statistic for $H_0: \beta_1=0$ exceeding 1.96 is 5 per
+cent. Because these regressors are integrated, however, this is not so.
+Reconsider (7). Since $\{y_t\}$ and $\{z_t\}$ are both integrated processes, (7)
+could be a well-defined regression with a non-zero $\beta_1$, if a relationship
+between these two variables existed. If however $\beta_1 =0$, as is true here
+by (4)-(6), we have $y_t = \beta_0 + u_t$. Now since $\{y_t\}$ is I(1), $\{u_t\}$ must be
+I(1), which violates the assumption made about $\{u_t\}$ above. There is an
+internal inconsistency in conducting hypothesis testing in the standard
+way here, because it is not possible for the error term to be I(0) when
+$\beta_1$ is zero.
+
+# Response Surfaces for Critical Values
+
+When compared with the corresponding critical values for unit-root tests
+given in previous modules, the critical values in Table X are illustrative of the
+changes in test levels implied by the presence of estimated parameters in
+the relationship yielding the series to be tested for stationarity. In
+themselves, however, they cover only a limited set of cases. Other tables
+are provided in Engle and Yoo (1987) and Phillips and Ouliaris (1990).
+MacKinnon (1991) provides results of a more extensive set of simulations, summarized in response surfaces: that is, critical values for
+particular tests are given as a set of parameters of an equation relating
+the exact critical value to a constant term and terms involving sample
+size, from which a critical value for any given sample size can be
+approximated. We will describe the latter results.
+
+Dickey-Fuller (or augmented Dickey-Fuller) tests for unit roots or
+co-integration can be considered within a common framework. Consider
+$n$ time series given by $y_{1t}, y_{2t}, \ldots, y_{nt}$, $t=1, 2, \ldots, T$. If
+$n = 1$, we are testing for a unit root in a single series, and to establish a
+uniform notation, we define the time series under test as
+$\{\hat{u}_t\}_{t=1}^\infty = \{y_{1t}\}_{t=1}^\infty$, we are first interested in
+obtaining a set of residuals from the estimated relationship among the $n$ variables, and so
+begin with the (static) co-integrating regression,
+
+\begin{equation}
+y_{1t} = \sum_{j=2}^n \beta_j y_{jt} + u_t
+\end{equation}
+
+Let $y_t \equiv (y_{1t}, y_{2t}, \ldots, y_{nt})$ the vector of measurements at time $t$ on
+the $n$ variables. The series to be tested for stationarity then becomes
+$\hat{u}_t = [1 \vdots - \hat{\mathbf{\beta}}^\prime]$, where $\hat{\mathbf{\beta}}^\prime$
+is the vector of estimated parameters. Subject
+to the relevance of the normalized variable, the ordering of variables in
+the co-integrating regression will not affect the asymptotic distribution of
+the test statistic, although in finite samples the value will depend upon
+which variable is the regressand. The null hypothesis of no
+co-integration implies that $\hat{u}_t$ is $I(1)$.
+
+We test this null using the tests considered in teh previous Module. In particular,
+the augmented Dickey-Fuller test takes the form of one of the following
+
+\begin{align}
+\Delta \hat{u}_t & = b \hat{u}_{t-1} + \sum_{j=1}^p \gamma_j \Delta \hat{u}_{t-j} + \eta_t \\
+\Delta \hat{u}_t & = \delta_0 + b \hat{u}_{t-1} + \sum_{j=1}^p \gamma_j \Delta \hat{u}_{t-j} + \eta_t \\
+\Delta \hat{u}_t & = \delta_0 + \delta_1 t + b \hat{u}_{t-1} + \sum_{j=1}^p \gamma_j \Delta \hat{u}_{t-j} + \eta_t
+\end{align}
+
+For $n \geq 2$, so that a co-integrating regression precedes the use of one
+of these models, model (10) could also be used with constant and trend,
+adding $\delta_0$ or $\delta_0 + \delta_1 t$ to the regression. Co-integration tests either
+include a constant in (10), or include a constant in the regression model
+(12). If a constant is added to (10) and model (11) is used, the strategy is
+equivalent to omitting the constant term and using model (12); if
+constant and trend are added to (10) and model (11) is used, then this is
+equivalent to using model (13), and so on. The model type referred to
+in Table 7.2 describes this presence or absence of constant and trend in
+the models. A test with constant but no trend, for example, implies
+model (12) with no constant in the co-integrating regression (10), or a
+constant in (10) used with model (11).
+
+The critical values, or upper quantiles of the distributions, can be
+calculated from the parameters of Table 7.2 using the relation
+\begin{equation}
+C(p) = \phi_{\infty} + \phi_1 T^{-1} + \phi_2 T^{-2}
+\end{equation}
+where $C(p)$ is the p per cent upper-quantile estimate. The parameters
+were estimated from regression over a set of individual simulation
+results covering, for most values of $n$, 40 sets of parameters for each of
+15 sample sizes. Model (14) (with an added error term) was found to
+represent well the various critical values that emerged from the many
+individual experiments; but other models could in principle have been
+used to fit a response surface to the results; see MacKinnon (1991) for a
+description of the experimental technique, including the feasible
+generalized least squares technique by which estimation of the final response
+surface model was undertaken, to allow for heteroskedasticity in (14).
+
+
+|  n  |    Model     | Point[%] | $\phi_{\infty}$ | $\phi_1$ | $\phi_2$ |
+| --- | ------------ | -------- | --------------- | -------- | -------- |
+| 1   | No constant, | 1        | -2.5658         | -1.960   | -10.04   |
+|     | no trend     | 5        | -1.9393         | -0.398   | 0.0      |
+|     |              | 10       | -1.6156         | -0.181   | 0.0      |
+| 1   | Constant,    | 1        | -3.4336         | -5.999   | -29.25   |
+|     | no trend     | 5        | -2.8621         | -2.738   | -8.36    |
+|     |              | 10       | -2.5671         | -1.438   | -4.48    |
+| 1   | Constant     | 1        | -3.9638         | -8.353   | -47.44   |
+|     | + trend      | 5        | -3.4126         | -4.039   | -17.83   |
+|     |              | 10       | -3.1279         | -2.418   | -7.58    |
+| 2   | Constant,    | 1        | -3.9001         | -10.534  | -30.03   |
+|     | no trend     | 5        | -3.3377         | -5.967   | -8.98    |
+|     |              | 10       | -3.0462         | -4.069   | -5.73    |
+| 2   | Constant     | 1        | -4.3266         | -15.531  | -34.05   |
+|     | + trend      | 5        | -3.7809         | -.9.421  | -15.06   |
+|     |              | 10       | -3.4959         | -7.203   | -4.01    |
+
+Table: Response surface for critical values of co-integration tests

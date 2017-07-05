@@ -1,0 +1,267 @@
+---
+title: "Cointegration Critical Values"
+author: "Miguel A. Arranz"
+date: '`r Sys.Date()`'
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(bookdown)
+```
+
+#Goals
+
+Calculate the critical values of tests for co-integration
+
+# DF Test
+
+The DGP is
+
+\begin{align*}
+\Delta y_t & = \varepsilon_t \\
+\Delta x_t & = u_t
+\end{align*}
+
+The procedure is 
+1. Estimate the cointegrating vector
+\begin{equation}
+y_t = \alpha + \beta x_t + \nu_t
+\end{equation}
+1. Apply the DF test to the residuals
+\begin{equation*}
+\Delta \hat{\nu}_t  = b \hat{\nu}_{t-1}  + \eta_t
+\end{equation*}
+
+Because there is a constant term in (1), there
+is no need to include one in (2).
+The regressand $\Delta \hat{\nu}_t$ and regressor
+$\hat{\nu}_{t-1}$ would
+each have mean zero if both were observed over observations 0 through T. However,
+because the regression does not make use of the first observation on $\Delta \hat{\nu}_t$ or the last
+observation on $\hat{\nu}_{t-1}$, that will not be quite true. But they should both have mean very
+close to zero except when T is small and either $\hat{\nu}_0$ or $\hat{\nu}_{T}$ is unusually large in absolute
+value. Hence adding a constant to the ADF test would generally have a negligible effect
+on the test statistic.
+
+The way the EG test is computed is somewhat arbitrary, since any one of the $y_j$ could
+be given the index 1 and made the regressand of the co-integrating regression. As a
+result, the value (but not the distribution) of the test statistic will differ depending on
+which series is used as the regressand. One may therefore wish to repeat the procedure
+with different choices of $y_j$ serving as regressand, thus computing up to $N$ different
+test statistics, especially if the first one is near the chosen critical value.
+
+If $N = 1$, this procedure is equivalent to one variant of the ordinary DF test (see
+below), in which one runs the regression
+$$
+\Delta \nu_t = \alpha_1 + b \nu_{t-1} + \eta_t
+$$
+and tests for $b = 0$. As several authors have shown (see West (1988) and Hylleberg
+and Mizon (1989)), the latter has the Dickey-Fuller distribution only when there is no
+drift term in the data-generating process for $\nu_t$, so that $\alpha_11 = 0$. When 
+$\alpha_1 \neq 0$, the test
+statistic is asymptotically distributed as $N(0, 1)$, and in finite samples its distribution
+may or may not be well approximated by the Dickey-Fuller distribution. The original
+version of the EG test likewise has a distribution that depends on the value of $\alpha_1$;
+since all tabulated critical values assume that $\alpha_1$, they may be quite misleading
+when that is not the case.
+
+There is a simple way to avoid the dependence on $\alpha_1$ of the distribution of the test
+statistic. It is to replace the cointegrating regression (1) by
+\begin{equation}
+y_t = \alpha_0 t + \alpha_1 + \beta x_t + \nu_t
+\end{equation}
+that is, to add a linear time trend to the cointegrating regression. The resulting
+test statistic will now be invariant to the value of $\alpha_1$, although it will have a different
+distribution than the one based on regression (1). Adding a trend to the cointegrating
+regression often makes sense for a number of other reasons, as Engle and Yoo (1990)
+discuss. There are thus two variants of the Engle-Granger test. The "no-trend"" variant
+uses (1) as the cointegrating regression, and the "with-trend"" variant uses (4).
+
+The Monte Carlo procedure is as follows:
+
+1.  Simulate the process above
+1.  Estimate the regression
+$$ 
+y_t = \alpha + \beta x_t + \nu_t
+$$
+or
+$$
+y_t = \alpha + \delta t + \beta x_t + \nu_t
+$$
+1.  Apply the DF test to residuals of the static regression $\hat{\nu}_t$
+\begin{align*}
+\Delta \hat{\nu}_t & = b \hat{\nu}_{t-1} + \beta_1 \Delta \hat{\nu}_{t-1} + \eta_t 
+\end{align*}
+The "no-trend" is DF1, and the "with-trend" is DF2.
+
+Let's try it
+
+```{r df12}
+library(urca)
+set.seed(123456)
+T <- 200
+M <- 10000
+B <- 50
+
+N <- T + B
+tt <- 1:T
+df1 <- df2 <- ecmtest <- array(dim=M)
+for(i in 1:M) {
+  epsn <- rnorm(N)
+  u <- rnorm(N)
+  x <- cumsum(u)
+  y <- cumsum(epsn)
+  x <- x[-(1:B)]
+  y <- y[-(1:B)]
+  
+  m1 <- lm(y~x)
+  uhat <- m1$resid
+  
+  t1 <- ur.df(uhat, type="none", lags=0, selectlags="Fixed")
+  df1[i] <- t1@teststat
+  
+  m2 <- lm(y~x+tt)
+  uhat <- m2$resid
+  
+  t4 <- ur.df(uhat, type="none", lags=0, selectlags="Fixed")
+  df2[i] <- t4@teststat
+  
+}
+```
+
+The critical values are:
+
+```{r df12values}
+aMCV <- matrix(nrow=2, ncol=3)
+colnames(aMCV) <- c("1%", "5%", "10%")
+rownames(aMCV) <- c("DF1", "DF2")
+p.vector <- c(0.01, 0.05, 0.1)
+aMCV[1,] <- quantile(df1, p.vector)
+aMCV[2,] <- quantile(df2, p.vector)
+knitr::kable(aMCV)
+```
+
+
+# ADF test
+
+The DGP is
+
+\begin{align}
+\Delta y_t & = \varepsilon_t \\
+\Delta x_t & = u_t
+\end{align}
+
+The Monte Carlo procedure is as follows:
+
+1.  Simulate the process above
+1.  Estimate the regression
+$$ 
+y_t = \alpha + \beta x_t + \nu_t
+$$
+1.  Apply the ADF test to residuals of the static regression $\hat{\nu}_t$
+\begin{align*}
+\Delta \hat{\nu}_t & = b \hat{\nu}_{t-1} + \beta_1 \Delta \hat{\nu}_{t-1} + \eta_t \\
+\Delta \hat{\nu}_t & = b \hat{\nu}_{t-1} + \sum_{j=1}^4 \beta_j \Delta \hat{\nu}_{t-j} + \eta_t
+\end{align*}
+
+
+Because there is a constant term in the co-integrating regression, there
+is no need to include one in the ADF tests. 
+
+
+
+```{r adf14}
+library(urca)
+set.seed(123456)
+T <- 200
+M <- 10000
+B <- 50
+
+N <- T + B
+
+adf1 <- adf4 <- ecmtest <- array(dim=M)
+for(i in 1:M) {
+  epsn <- rnorm(N)
+  u <- rnorm(N)
+  x <- cumsum(u)
+  y <- cumsum(epsn)
+  x <- x[-(1:B)]
+  y <- y[-(1:B)]
+  
+  m1 <- lm(y~x)
+  uhat <- m1$resid
+  
+  t1 <- ur.df(uhat, type="none", lags=1, selectlags="Fixed")
+  adf1[i] <- t1@teststat
+  
+  t4 <- ur.df(uhat, type="none", lags=4, selectlags="Fixed")
+  adf4[i] <- t4@teststat
+  
+}
+```
+
+The critical values are:
+
+```{r adf14values}
+MCV <- matrix(nrow=2, ncol=3)
+colnames(MCV) <- c("1%", "5%", "10%")
+rownames(MCV) <- c("ADF(1)", "ADF(4)")
+p.vector <- c(0.01, 0.05, 0.1)
+MCV[1,] <- quantile(adf1, p.vector)
+MCV[2,] <- quantile(adf4, p.vector)
+knitr::kable(MCV)
+```
+
+See the values in table
+
+```{r kadf14}
+knitr::kable(MCV)
+```
+
+
+# ECM test
+
+Same DGP as before
+
+
+```{r ecmMC}
+set.seed(123456)
+library(zoo)
+library(dynlm)
+T <- 200
+M <- 10000
+B <- 50
+
+N <- T + B
+
+ecmtest <- array(dim=M)
+for(i in 1:M) {
+  epsn <- rnorm(N)
+  u <- rnorm(N)
+  x <- cumsum(u)
+  y <- cumsum(epsn)
+  x <- as.zoo(x[-(1:B)])
+  y <- as.zoo(y[-(1:B)])
+  
+  m1 <- dynlm(y~x)
+  uhat <- m1$resid
+  
+  m2 <- dynlm(d(y) ~ L(uhat) + d(x))
+  ecmtest[i] <- summary(m2)$coef[2,3]
+}
+```
+
+and the critical values are
+
+```{r ecmCV}
+ecmCV <- matrix(nrow=1, ncol=3)
+rownames(ecmCV) <- c("ECM")
+colnames(ecmCV) <- colnames(MCV)
+ecmCV[1,] <- quantile(ecmtest, p.vector)
+knitr::kable(ecmCV)
+```
+
