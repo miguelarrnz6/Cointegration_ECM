@@ -125,9 +125,9 @@ relation yields a stationary deviation.
 
 
 Since a relationship between co-integrated variables can be shown to
-be representable using an error-correction mechanism (see Chapter 5),
+be representable using an error-correction mechanism,
 and since such representations have been found to be valuable in
-empirical modelHng, there is a formal counterpart to the informal
+empirical modeling, there is a formal counterpart to the informal
 argument above suggesting the usefulness of equilibrium information in
 specifying dynamic regression models.
 
@@ -234,6 +234,9 @@ $$
 
 Yet, when we estimate te relationship, we take the regression
 
+$$
+y_{1,t} = \beta y_{2,t} + \varepsilon
+$$
 
 The OLS estimate of the cointegrating vector was obtained by normalizing
 the first element of the cointegrating vector a to be unity. The proposal was then
@@ -248,10 +251,12 @@ Obviously, we might equally well have normalized $\beta_2 = 1$ and used the same
 argument to suggest a regression of $y_2$ on $y_1$:
 
 \begin{equation}
-y_2 = \theta  + \varphi y_2 + v
+y_2 = \theta  + \varphi y_1 + v
 \end{equation}
 
-The OLS estimate $\hat{\varphi}$ is not simply the inverse of $\hat{\beta}$, meaning that these two regressions will give different estimates of the cointegrating vector.
+The OLS estimate $\hat{\varphi}$ is not simply the inverse of $\hat{\beta}$,
+meaning that these two regressions will give different estimates of the
+cointegrating vector.
 
 Only in the limiting case where the $R^2$ is 1 would the two estimates coincide.
 
@@ -259,13 +264,14 @@ Thus, choosing which variable to call $y_1$ and which to call $y_2$ might end up
 making a material difference for the estimate of a as well as for the evidence one
 finds for cointegration among the series. One approach that avoids this normalization
 problem is the full-information maximum likelihood estimate proposed by
-Johansen A988, 1991). This will be discussed later.
+Johansen (1988, 1991). This will be discussed later (in a different course).
 
 # Spurious Regression
 
 
 The standard proof of the consistency of ordinary least squares
-regression uses an assumption such as that $plim(1/T)(\mathbf{X}^\prime \mathbf{X}) = \mathbf{Q}$,
+regression uses an assumption such as that
+$plim(1/T)(\mathbf{X}^\prime \mathbf{X}) = \mathbf{Q}$,
 where $\mathbf{X}$ is
 the matrix containing the data on the explanatory variables and $\mathbf{Q}$ is a
 fixed matrix. That is, with increasing sample information, the sample
@@ -293,8 +299,8 @@ E(u_t, v_s) = 0 \: \forall s,t; \qquad E(u_t, u_{t-k}) = E(v_t, v_{t-k}) = 0 \: 
 
 
 That is, $x_t$ and $y_t$ are uncorrelated random walks. Since $x_t$ neither
-affects nor is affected by $y_t$, one would hope that the coefficient $\beta_1$ in
-the regression model
+affects nor is affected by $y_t$, one would hope that the
+OLS coefficient $\beta_1$ in the regression model
 
 \begin{equation}
 y_t = \beta_0 + \beta_1 x_t + \varepsilon_t
@@ -350,7 +356,8 @@ converges to zero, reflecting the lack of relationship between the series.
 
 Further analytical results concerning the distribution of the $F$-statistic
 for the hypothesis that $\beta_0 = \beta_1 = 0$, and those of standard
-autocorrelation test statistics, are also given in Phillips (1986). The $f$-statistic also
+autocorrelation test statistics, are also given in Phillips (1986). The
+$F$-statistic also
 diverges, leading to rejections growing with the sample size $T$, despite
 the lack of relation between $\{y_t\}$ and $\{x_t\}$; residual autocorrelation
 tests, however, provide an indication to the investigator that the model
@@ -359,7 +366,7 @@ serial correlation coefficient of unity. That is, although the $t$- and
 $F$-statistics for the null hypothesis of interest are grossly misleading,
 some information which would suggest that the regression (3) is mis-
 specified is provided by a test for residual autocorrelation. This
-underlines again the. importance of thoroughly testing any regression model
+underlines again the importance of thoroughly testing any regression model
 for mis-specification, and basing inference only upon those in which no
 evidence of serious mis-specification is found; see e.g. Spanos (1986).
 
@@ -386,7 +393,8 @@ random walks and $y_t$ and $z_t$ are the sums of all of their respective past
 shocks. When $\alpha$ and $\gamma$ are not zero, $y_t$ and $z_t$ depend on linear trends
 which reflect the accumulation of the successive intercepts. This
 completes the formulation of the statistical generating mechanism in (4) and
-(5), other than stating a specific form for the error distributions. (These results were obtained in the Module on Unit Roots).
+(5), other than stating a specific form for the error distributions.
+(These results were obtained in the Module on Unit Roots).
 
 Turn now to the specification of an economic hypothesis. An
 economist may wish to describe the relationship between $\{y_t\}$ and $\{z_t\}$ with the
@@ -405,7 +413,7 @@ the conventional estimation and hypothesis testing procedure applied to
 (7) when the unknown DGP is in fact (4)-(6).
 
 Standard regression theory for models involving stationary regressors
-would suggest that $plim(\hat{\beta}_1 = \beta_1) = 0$, and that the probability of the
+would suggest that $plim(\hat{\beta}_1 - \beta_1) = 0$, and that the probability of the
 absolute value of the $t$-statistic for $H_0: \beta_1=0$ exceeding 1.96 is 5 per
 cent. Because these regressors are integrated, however, this is not so.
 Reconsider (7). Since $\{y_t\}$ and $\{z_t\}$ are both integrated processes, (7)
@@ -425,7 +433,8 @@ changes in test levels implied by the presence of estimated parameters in
 the relationship yielding the series to be tested for stationarity. In
 themselves, however, they cover only a limited set of cases. Other tables
 are provided in Engle and Yoo (1987) and Phillips and Ouliaris (1990).
-MacKinnon (1991) provides results of a more extensive set of simulations, summarized in response surfaces: that is, critical values for
+MacKinnon (1991) provides results of a more extensive set of simulations,
+summarized in response surfaces: that is, critical values for
 particular tests are given as a set of parameters of an equation relating
 the exact critical value to a constant term and terms involving sample
 size, from which a critical value for any given sample size can be
@@ -446,7 +455,8 @@ y_{1t} = \sum_{j=2}^n \beta_j y_{jt} + u_t
 
 Let $y_t \equiv (y_{1t}, y_{2t}, \ldots, y_{nt})$ the vector of measurements at time $t$ on
 the $n$ variables. The series to be tested for stationarity then becomes
-$\hat{u}_t = [1 \vdots - \hat{\mathbf{\beta}}^\prime]$, where $\hat{\mathbf{\beta}}^\prime$
+$\hat{u}_t = [1 \vdots - \hat{\boldsymbol{\beta}}^\prime]$, where
+$\hat{\boldsymbol{\beta}}^\prime$
 is the vector of estimated parameters. Subject
 to the relevance of the normalized variable, the ordering of variables in
 the co-integrating regression will not affect the asymptotic distribution of
@@ -454,7 +464,7 @@ the test statistic, although in finite samples the value will depend upon
 which variable is the regressand. The null hypothesis of no
 co-integration implies that $\hat{u}_t$ is $I(1)$.
 
-We test this null using the tests considered in teh previous Module. In particular,
+We test this null using the tests considered in the Unit Root Module. In particular,
 the augmented Dickey-Fuller test takes the form of one of the following
 
 \begin{align}
